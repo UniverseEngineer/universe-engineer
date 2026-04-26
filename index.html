@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Universe Engineer - Game Portal</title>
+    
+    <!-- Statcounter code for Universe Engineer Portal -->
+    <script type="text/javascript">
+    var sc_project=13224035; 
+    var sc_invisible=1; 
+    var sc_security="e3aa3de9"; 
+    </script>
+    <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
+    <noscript>
+        <div class="statcounter">
+            <a title="Web Analytics" href="https://statcounter.com/" target="_blank">
+                <img class="statcounter" src="https://c.statcounter.com/13224035/0/e3aa3de9/1/" alt="Web Analytics" referrerPolicy="no-referrer-when-downgrade">
+            </a>
+        </div>
+    </noscript>
+    <!-- End of Statcounter Code -->
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0f1e 0%, #0a1a2a 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            padding-bottom: 30px;
+        }
+
+        .lang-switch {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 30px;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+        }
+        .lang-switch button {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0 8px;
+            font-weight: bold;
+        }
+        .lang-switch button.active {
+            color: #00ff88;
+        }
+
+        .header {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 2px solid #00ff88;
+        }
+        .header h1 {
+            font-size: 32px;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .header p {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 8px;
+        }
+
+        .stats-panel {
+            background: #1a1a2e;
+            margin: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 4px solid #00ff88;
+        }
+        .stats-panel h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .stat-card {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 12px;
+            min-width: 120px;
+            flex: 1;
+        }
+        .stat-card .game-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        .stat-card .play-count {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .stat-card .last-played {
+            font-size: 10px;
+            color: #888;
+        }
+        .reset-stats {
+            background: #ff4444;
+            border: none;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .ad-space {
+            background: #1a1a2e;
+            margin: 10px 15px;
+            padding: 12px;
+            text-align: center;
+            border-radius: 12px;
+            border: 1px dashed #00ff88;
+            color: #888;
+            font-size: 11px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 15px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #1e2a3a, #0f1724);
+            border-radius: 25px;
+            overflow: hidden;
+            border: 1px solid #2a3a4a;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .game-card:active {
+            transform: scale(0.98);
+        }
+
+        .game-icon {
+            height: 150px;
+            background: linear-gradient(135deg, #1a1a2e, #0a0a1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+
+        .game-info {
+            padding: 18px;
+        }
+
+        .game-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .game-genre {
+            font-size: 12px;
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .game-desc {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .play-btn {
+            display: block;
+            background: #00ff88;
+            color: #000;
+            text-align: center;
+            padding: 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .events-section {
+            margin: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+        }
+        .events-section h3 {
+            margin-bottom: 12px;
+            color: #ffaa00;
+            font-size: 16px;
+        }
+        .event-item {
+            background: #1a1a2e;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #ffaa00;
+        }
+        .event-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .event-date {
+            font-size: 10px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        .game-modal.active {
+            display: flex;
+        }
+        .modal-header {
+            background: #111;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        .modal-header button {
+            background: #ff4444;
+            border: none;
+            color: white;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .game-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="lang-switch">
+    <button id="lang-en" class="active">EN</button> | 
+    <button id="lang-ru">RU</button>
+</div>
+
+<div class="header">
+    <h1>🌌 UNIVERSE ENGINEER</h1>
+    <p id="subtitle">Game Portal</p>
+</div>
+
+<div class="stats-panel">
+    <h3 id="statsTitle">📊 GAME STATISTICS</h3>
+    <div class="stats-grid" id="statsContainer"></div>
+    <button class="reset-stats" id="resetStatsBtn" onclick="resetAllStats()">🔄 Reset All Stats</button>
+</div>
+
+<div class="ad-space" id="adTop">
+    📢 AD SPACE — Google AdSense will go here
+</div>
+
+<div class="games-grid" id="gamesContainer"></div>
+
+<div class="ad-space" id="adBottom">
+    📢 AD SPACE — Second AdSense banner here
+</div>
+
+<div class="events-section">
+    <h3 id="eventsTitle">📢 NEWS & EVENTS</h3>
+    <div class="event-item">
+        <div class="event-title" id="event1Title">⭐ STAR SHOT: ELITE Released!</div>
+        <div class="event-date" id="event1Date">Added to Universe Engineer portal</div>
+    </div>
+    <div class="event-item">
+        <div class="event-title" id="event2Title">🎮 More games coming soon</div>
+        <div class="event-date" id="event2Date">Follow for updates</div>
+    </div>
+</div>
+
+<div class="footer">
+    UNIVERSE ENGINEER | Game Portal | All rights reserved
+</div>
+
+<div id="gameModal" class="game-modal">
+    <div class="modal-header">
+        <span id="modalTitle" style="color:#00ff88; font-weight:bold;">Game</span>
+        <button onclick="closeGame()">✖ CLOSE</button>
+    </div>
+    <iframe id="gameIframe" class="game-frame" src="about:blank"></iframe>
+</div>
+
+<script>
+    const GAMES = [
+        {
+            id: "star_shot_elite",
+            file: "star-shot-elite.html",
+            icon: "🚀",
+            title: "STAR SHOT: ELITE",
+            genre: "Shooter / Arcade",
+            desc_en: "Shoot enemies, destroy bosses, collect power-ups! Space shooter with combo system and leaderboards.",
+            desc_ru: "Стреляйте по врагам, уничтожайте боссов, собирайте усиления! Космический шутер с системой комбо и таблицей лидеров."
+        }
+    ];
+
+    const texts = {
+        en: {
+            subtitle: "Game Portal",
+            statsTitle: "📊 GAME STATISTICS",
+            adTop: "📢 AD SPACE — Google AdSense will go here",
+            adBottom: "📢 AD SPACE — Second AdSense banner here",
+            eventsTitle: "📢 NEWS & EVENTS",
+            event1Title: "⭐ STAR SHOT: ELITE Released!",
+            event1Date: "Added to Universe Engineer portal",
+            event2Title: "🎮 More games coming soon",
+            event2Date: "Follow for updates",
+            resetBtn: "🔄 Reset All Stats",
+            playBtn: "🎮 PLAY NOW"
+        },
+        ru: {
+            subtitle: "Игровой Портал",
+            statsTitle: "📊 СТАТИСТИКА ИГР",
+            adTop: "📢 РЕКЛАМА — Google AdSense будет здесь",
+            adBottom: "📢 РЕКЛАМА — Второй баннер AdSense здесь",
+            eventsTitle: "📢 НОВОСТИ И СОБЫТИЯ",
+            event1Title: "⭐ STAR SHOT: ELITE Вышла!",
+            event1Date: "Добавлена на портал Universe Engineer",
+            event2Title: "🎮 Скоро новые игры",
+            event2Date: "Следите за обновлениями",
+            resetBtn: "🔄 Сбросить всю статистику",
+            playBtn: "🎮 ИГРАТЬ"
+        }
+    };
+
+    let currentLang = 'en';
+
+    function getStats() {
+        let stats = localStorage.getItem('ue_portal_stats');
+        if (!stats) {
+            let defaultStats = {};
+            GAMES.forEach(game => {
+                defaultStats[game.id] = { plays: 0, lastPlayed: null };
+            });
+            localStorage.setItem('ue_portal_stats', JSON.stringify(defaultStats));
+            return defaultStats;
+        }
+        return JSON.parse(stats);
+    }
+
+    function saveStats(stats) {
+        localStorage.setItem('ue_portal_stats', JSON.stringify(stats));
+        renderStats();
+    }
+
+    function recordPlay(gameId) {
+        let stats = getStats();
+        if (!stats[gameId]) {
+            stats[gameId] = { plays: 0, lastPlayed: null };
+        }
+        stats[gameId].plays++;
+        stats[gameId].lastPlayed = new Date().toLocaleString();
+        saveStats(stats);
+    }
+
+    function renderStats() {
+        const stats = getStats();
+        const container = document.getElementById('statsContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        GAMES.forEach(game => {
+            const stat = stats[game.id] || { plays: 0, lastPlayed: null };
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.innerHTML = '<div class="game-name">' + game.icon + ' ' + game.title + '</div><div class="play-count">' + stat.plays + '</div><div class="last-played">Last: ' + (stat.lastPlayed || 'never') + '</div>';
+            container.appendChild(card);
+        });
+    }
+
+    function resetAllStats() {
+        if (confirm(currentLang === 'en' ? 'Reset ALL game statistics? This cannot be undone.' : 'Сбросить ВСЮ статистику игр? Это нельзя отменить.')) {
+            let defaultStats = {};
+            GAMES.forEach(game => {
+                defaultStats[game.id] = { plays: 0, lastPlayed: null };
+            });
+            localStorage.setItem('ue_portal_stats', JSON.stringify(defaultStats));
+            renderStats();
+        }
+    }
+
+    function renderGames() {
+        const container = document.getElementById('gamesContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        GAMES.forEach(game => {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.onclick = function() { openGame(game.id, game.title); };
+            card.innerHTML = '<div class="game-icon">' + game.icon + '</div><div class="game-info"><div class="game-title">' + game.title + '</div><div class="game-genre">' + game.genre + '</div><div class="game-desc" data-desc-en="' + game.desc_en + '" data-desc-ru="' + game.desc_ru + '">' + (currentLang === 'en' ? game.desc_en : game.desc_ru) + '</div><div class="play-btn">' + texts[currentLang].playBtn + '</div></div>';
+            container.appendChild(card);
+        });
+    }
+
+    function updateGameDescriptions() {
+        const descElements = document.querySelectorAll('.game-desc');
+        GAMES.forEach(function(game, index) {
+            if (descElements[index]) {
+                descElements[index].innerText = currentLang === 'en' ? game.desc_en : game.desc_ru;
+            }
+        });
+    }
+
+    function openGame(gameId, gameTitle) {
+        recordPlay(gameId);
+        const game = GAMES.find(function(g) { return g.id === gameId; });
+        if (!game) return;
+        const modal = document.getElementById('gameModal');
+        const iframe = document.getElementById('gameIframe');
+        const modalTitle = document.getElementById('modalTitle');
+        modalTitle.innerText = gameTitle;
+        iframe.src = game.file;
+        modal.classList.add('active');
+    }
+
+    function closeGame() {
+        const modal = document.getElementById('gameModal');
+        const iframe = document.getElementById('gameIframe');
+        modal.classList.remove('active');
+        setTimeout(function() { iframe.src = 'about:blank'; }, 100);
+    }
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('subtitle').innerText = texts[lang].subtitle;
+        document.getElementById('statsTitle').innerHTML = texts[lang].statsTitle;
+        document.getElementById('adTop').innerHTML = texts[lang].adTop;
+        document.getElementById('adBottom').innerHTML = texts[lang].adBottom;
+        document.getElementById('eventsTitle').innerHTML = texts[lang].eventsTitle;
+        document.getElementById('event1Title').innerHTML = texts[lang].event1Title;
+        document.getElementById('event1Date').innerHTML = texts[lang].event1Date;
+        document.getElementById('event2Title').innerHTML = texts[lang].event2Title;
+        document.getElementById('event2Date').innerHTML = texts[lang].event2Date;
+        document.getElementById('resetStatsBtn').innerHTML = texts[lang].resetBtn;
+        
+        const playBtns = document.querySelectorAll('.play-btn');
+        for (var i = 0; i < playBtns.length; i++) {
+            playBtns[i].innerHTML = texts[lang].playBtn;
+        }
+        
+        updateGameDescriptions();
+        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+        document.getElementById('lang-ru').classList.toggle('active', lang === 'ru');
+    }
+
+    document.getElementById('lang-en').onclick = function() { setLanguage('en'); };
+    document.getElementById('lang-ru').onclick = function() { setLanguage('ru'); };
+    
+    renderGames();
+    renderStats();
+    setLanguage('en');
+</script>
+</body>
+</html>
