@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6VSVYZBW4R"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-6VSVYZBW4R');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Universe Engineer</title>
     <style>
         :root {
-            --bg-color: #fff9c4; /* Gaiši dzeltens portāla fons */
+            --bg-color: #fff9c4; 
             --card-bg: #ffffff;
             --accent: #ff2449;
             --title-green: #2e7d32;
-            --info-green: #4CAF50; /* Zaļais fons nosaukumiem */
+            --info-green: #4CAF50;
             --text-color: #212121;
             --text-secondary: #eeeeee;
         }
@@ -78,24 +86,21 @@
         .game-img {
             width: 100%;
             height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             border-bottom: 1px solid #eee;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
+        /* BILŽU NOSAUKUMI AR MAZAJIEM BURTIEM */
         .img-star { background-image: url('star-shot.jpg'); }
         .img-tetris { background-image: url('tetris.jpg'); }
 
-        /* UZLABOTS: ZAĻS FONS NOSAUKUMIEM */
         .game-info {
             padding: 15px 10px;
-            background: var(--info-green); /* Zaļā krāsa šeit */
+            background: var(--info-green); 
             border-radius: 0 0 25px 25px;
-            color: #ffffff; /* Balts teksts labākai redzamībai */
+            color: #ffffff;
         }
 
         .game-title { 
@@ -174,13 +179,8 @@
         document.getElementById('g1').innerText = t.g1;
         document.getElementById('g2').innerText = t.g2;
         
-        if (currentLang === 'en') {
-            document.getElementById('lang-en').classList.add('active');
-            document.getElementById('lang-ru').classList.remove('active');
-        } else {
-            document.getElementById('lang-ru').classList.add('active');
-            document.getElementById('lang-en').classList.remove('active');
-        }
+        document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+        document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
     }
 
     document.getElementById('lang-en').onclick = () => { currentLang='en'; updateLanguageUI(); };
