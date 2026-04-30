@@ -24,97 +24,28 @@
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: sans-serif;
-            overflow-x: hidden;
-        }
-
-        header {
-            padding: 20px; 
-            background: #fbc02d;
-            border-bottom: 2px solid var(--accent);
-            text-align: center;
-        }
-
-        h1 { 
-            margin: 0 0 15px 0; 
-            font-size: 1.4rem; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            font-weight: bold; 
-            color: var(--title-green); 
-        }
+        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); font-family: sans-serif; overflow-x: hidden; }
+        header { padding: 20px; background: #fbc02d; border-bottom: 2px solid var(--accent); text-align: center; }
+        h1 { margin: 0 0 15px 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; color: var(--title-green); }
 
         .lang-switch { display: flex; justify-content: center; gap: 10px; margin-bottom: 5px; }
-        
-        .lang-btn {
-            background: #fff; border: 1px solid #ccc; color: #333;
-            padding: 8px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .lang-btn.active { 
-            border-color: var(--accent) !important; 
-            color: var(--accent) !important; 
-            background: #ffebee; 
-        }
+        .lang-btn { background: #fff; border: 1px solid #ccc; color: #333; padding: 8px 20px; border-radius: 12px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+        .lang-btn.active { border-color: var(--accent) !important; color: var(--accent) !important; background: #ffebee; }
 
         main { padding: 15px; }
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .game-card { background: var(--card-bg); border: 1px solid #ddd; text-decoration: none; color: inherit; display: block; border-radius: 25px; overflow: hidden; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        
+        .game-img { width: 100%; height: 120px; border-bottom: 1px solid #eee; background-size: cover; background-position: center; background-repeat: no-repeat; }
 
-        .games-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .game-card {
-            background: var(--card-bg);
-            border: 1px solid #ddd;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            border-radius: 25px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .game-img {
-            width: 100%;
-            height: 120px;
-            border-bottom: 1px solid #eee;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        /* BILŽU NOSAUKUMI AR MAZAJIEM BURTIEM */
+        /* BILŽU ATRAŠANĀS VIETAS */
         .img-star { background-image: url('star-shot.jpg'); }
         .img-tetris { background-image: url('tetris.jpg'); }
+        .img-durak { background-image: url('durak.jpg'); }
 
-        .game-info {
-            padding: 15px 10px;
-            background: var(--info-green); 
-            border-radius: 0 0 25px 25px;
-            color: #ffffff;
-        }
-
-        .game-title { 
-            font-weight: bold; 
-            font-size: 1.1rem; 
-            display: block; 
-            margin-bottom: 4px;
-        }
-        
-        .game-meta { 
-            font-size: 0.8rem; 
-            color: var(--text-secondary); 
-            font-weight: 500;
-        }
+        .game-info { padding: 15px 10px; background: var(--info-green); border-radius: 0 0 25px 25px; color: #ffffff; }
+        .game-title { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 4px; }
+        .game-meta { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; }
 
         #game-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; }
         #game-frame { flex-grow: 1; border: none; }
@@ -148,6 +79,14 @@
                 <span id="g2" class="game-meta">Puzzle Game</span>
             </div>
         </div>
+
+        <div class="game-card" onclick="openGame('durak.html')">
+            <div class="game-img img-durak"></div>
+            <div class="game-info">
+                <span class="game-title">Durak</span>
+                <span id="g3" class="game-meta">Card Game</span>
+            </div>
+        </div>
     </div>
 </main>
 
@@ -159,8 +98,8 @@
 <script>
     let currentLang = 'en';
     const texts = {
-        en: { close: "CLOSE GAME", g1: "Space Shooter", g2: "Puzzle Game" },
-        ru: { close: "ЗАКРЫТЬ ИГРУ", g1: "Космо-шутер", g2: "Пазл-игра" }
+        en: { close: "CLOSE GAME", g1: "Space Shooter", g2: "Puzzle Game", g3: "Card Game" },
+        ru: { close: "ЗАКРЫТЬ ИГРУ", g1: "Космо-шутер", g2: "Пазл-игра", g3: "Карточная игра" }
     };
 
     function openGame(url) {
@@ -178,6 +117,7 @@
         document.getElementById('close-txt').innerText = t.close;
         document.getElementById('g1').innerText = t.g1;
         document.getElementById('g2').innerText = t.g2;
+        document.getElementById('g3').innerText = t.g3;
         
         document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
         document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
