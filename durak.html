@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Durak - DOUBLE TAP FULLSCREEN + FIXED EXIT</title>
+    <style>
+        body { margin: 0; background: #1a4a1a; color: white; font-family: sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+        #game-board { width: 100vw; height: 100vh; position: relative; display: none; flex-direction: column; }
+        
+        #menu { position: absolute; width: 100%; height: 100%; background: #0e2a0e; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        .m-btn { padding: 15px 35px; margin: 10px; font-size: 20px; font-weight: bold; background: #f39c12; color: white; border: none; border-radius: 10px; cursor: pointer; }
+
+        .card { 
+            width: 52px; height: 78px; background: white; border-radius: 6px; 
+            color: black; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-weight: bold;
+            border: 2px solid #444; box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+            font-size: 18px; position: absolute; transition: all 0.1s; 
+            touch-action: pan-y pinch-zoom;
+            will-change: transform;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .card:active { transform: scale(0.97); }
+        .red { color: #d00; }
+        .back { background: #2a52be; border: 1px solid white; background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,.1) 5px, rgba(255,255,255,.1) 10px); }
+
+        #bot-hand { width: 100%; display: flex; justify-content: center; gap: 4px; height: 90px; padding-top: 8px; flex-wrap: wrap; }
+        .bot-card { width: 52px; height: 78px; }
+
+        #player-hand-container { width: 100%; position: absolute; bottom: 10px; left: 0; background: rgba(0,0,0,0.2); padding: 10px 0; display: flex; justify-content: center; }
+        #player-hand { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 95%; }
+        .hand-card { display: inline-block; flex-shrink: 0; }
+        .hand-card .card { position: relative; left: auto; top: auto; width: 52px; height: 78px; font-size: 18px; margin-right: -8px; }
+
+        #status-bar { width: 100%; text-align: center; color: #f1c40f; font-size: 18px; font-weight: bold; margin: 5px 0; text-shadow: 1px 1px 2px black; z-index: 150; position: relative; background: rgba(0,0,0,0.5); }
+
+        #sidebar { position: absolute; left: 10px; top: 100px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; }
+        #trump-card-slot { width: 52px; height: 78px; position: relative; }
+        .exit-btn { padding: 6px 10px; background: #c0392b; border: 1px solid white; border-radius: 5px; color: white; font-size: 11px; cursor: pointer; }
+
+        #table { flex-grow: 1; position: relative; width: 100%; min-height: 200px; margin-top: 10px; }
+        #table-content { position: relative; width: 100%; min-height: 180px; }
+
+        #actions { position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; gap: 10px; }
+        .action-btn { padding: 6px 16px; background: #e67e22; color: white; border: 2px solid white; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 1px 1px 4px black; white-space: nowrap; }
+        .restart-btn { background: #27ae60; }
+        .confirm-btn { background: #2980b9; }
+        
+        .table-card { position: absolute; }
+        #deck-cnt { font-size: 11px; text-align: center; }
+        #stats-panel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 8px; font-size: 12px; text-align: right; z-index: 150; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div id="menu">
+    <h1 style="color:#f1c40f">DURAK</h1>
+    <button class="m-btn" onclick="start('en')">ENGLISH</button>
+    <button class="m-btn" onclick="start('ru')">РУССКИЙ</button>
+</div>
+
+<div id="game-board">
+    <div id="stats-panel"></div>
+    <div id="bot-hand"></div>
+    <div id="status-bar"></div>
+    <div id="sidebar">
+        <div><div id="trump-card-slot"></div></div>
+        <div id="deck-cnt"></div>
+        <button class="exit-btn" id="btn-exit" onclick="exitGame()">EXIT</button>
+    </div>
+    <div id="table"><div id="table-content"></div></div>
+    <div id="actions">
+        <button id="btn-main" class="action-btn" style="display:none" onclick="doAction()"></button>
+        <button id="btn-confirm-take" class="action-btn confirm-btn" style="display:none" onclick="confirmBotTake()">✅ CONFIRM TAKE</button>
+        <button id="btn-restart" class="action-btn restart-btn" style="display:none" onclick="restartGame()">🔄 PLAY AGAIN</button>
+    </div>
+    <div id="player-hand-container"><div id="player-hand"></div></div>
+</div>
+
+<script>
+    function enterFullscreen() {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) docEl.requestFullscreen();
+        else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+        else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+    }
+    
+    function exitFullscreen() {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+    }
+    
+    function setupDoubleTapFullscreen() {
+        const board = document.getElementById('game-board');
+        let lastTap = 0;
+        board.addEventListener('click', (e) => {
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                enterFullscreen();
+            }
+            lastTap = now;
+        });
+    }
+    
+    function exitGame() {
+        exitFullscreen();
+        document.getElementById('game-board').style.display = 'none';
+        document.getElementById('menu').style.display = 'flex';
+        if (botTimer) clearTimeout(botTimer);
+        active = false;
+    }
+
+    let stats = { wins: 0, losses: 0, draws: 0, total: 0 };
+    let waitingForConfirmTake = false;
+    
+    function updateStatsDisplay() {
+        const panel = document.getElementById('stats-panel');
+        panel.innerHTML = `🏆 ${stats.wins} &nbsp;|&nbsp; 🤖 ${stats.losses} &nbsp;|&nbsp; 🤝 ${stats.draws} &nbsp;|&nbsp; 📊 ${stats.total}`;
+    }
+    
+    function restartGame() {
+        deck = [];
+        pHand = [];
+        bHand = [];
+        table = [];
+        active = true;
+        waitingForConfirmTake = false;
+        if (botTimer) clearTimeout(botTimer);
+        
+        suits.forEach(s => ranks.forEach(r => deck.push({s, r, v: vals[r], c: (s==='♥'||s==='♦')?'red':'black'})));
+        for(let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        trump = deck[0];
+        for(let i=0; i<6; i++) { 
+            if(deck.length) pHand.push(deck.pop()); 
+            if(deck.length) bHand.push(deck.pop()); 
+        }
+        pAtk = true;
+        waiting = false;
+        
+        document.getElementById('btn-restart').style.display = 'none';
+        document.getElementById('btn-confirm-take').style.display = 'none';
+        refresh();
+    }
+    
+    function endGame(result) {
+        active = false;
+        if (result === 'win') {
+            stats.wins++;
+        } else if (result === 'loss') {
+            stats.losses++;
+        } else if (result === 'draw') {
+            stats.draws++;
+        }
+        stats.total++;
+        updateStatsDisplay();
+        
+        const restartBtn = document.getElementById('btn-restart');
+        restartBtn.style.display = 'block';
+        if (lang === 'en') restartBtn.innerText = '🔄 NEW GAME';
+        else restartBtn.innerText = '🔄 НОВАЯ ИГРА';
+    }
+    
+    function confirmBotTake() {
+        if (!waitingForConfirmTake) return;
+        waitingForConfirmTake = false;
+        document.getElementById('btn-confirm-take').style.display = 'none';
+        
+        for(let i = 0; i < table.length; i++) bHand.push(table[i]);
+        table = [];
+        waiting = false;
+        pAtk = true;
+        drawCards();
+        refresh();
+        checkGameEnd();
+    }
+
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    // ATJAUNOTĀ SPIDER SOLITAIRE STILA KĀRŠU SKAŅA
+    function playCardSound() {
+        try {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const duration = 0.12; 
+            const sampleRate = audioCtx.sampleRate;
+            const bufferSize = sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                const t = i / bufferSize;
+                // Īss, perkusīvs troksnis
+                const noise = (Math.random() * 2 - 1) * Math.exp(-t * 15);
+                // Viegls vidējo frekvenču klikšķis
+                const tone = Math.sin(2 * Math.PI * 400 * t) * Math.exp(-t * 20) * 0.3;
+                data[i] = noise * 0.4 + tone;
+            }
+            
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start();
+        } catch(e) {
+            console.log("Audio error:", e);
+        }
+    }
+
+    const suits = ['♠', '♣', '♥', '♦'], ranks = ['6','7','8','9','10','J','Q','K','A'], vals = {'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
+    let deck = [], pHand = [], bHand = [], table = [], trump = null;
+    let pAtk = true, waiting = false, lang = 'en', active = true;
+    let botTimer = null;
+
+    const txt = {
+        en: { take: "TAKE", end: "DONE", pTurn: "YOUR TURN", bTurn: "BOT ATTACKS", def: "DEFEND!", exit: "EXIT", count: "Cards: ", confirm: "CONFIRM TAKE" },
+        ru: { take: "ВЗЯТЬ", end: "БИТО", pTurn: "ВАШ ХОД", bTurn: "БОТ ХОДИТ", def: "ОТБИВАЙСЯ!", exit: "ВЫЙТИ", count: "Карт: ", confirm: "ПОДТВЕРДИТЬ ВЗЯТИЕ" }
+    };
+
+    function start(l) {
+        lang = l;
+        enterFullscreen();
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('game-board').style.display = 'flex';
+        document.getElementById('btn-exit').innerText = txt[lang].exit;
+        
+        setupDoubleTapFullscreen();
+        
+        stats = { wins: 0, losses: 0, draws: 0, total: 0 };
+        updateStatsDisplay();
+        
+        deck = [];
+        suits.forEach(s => ranks.forEach(r => deck.push({s, r, v: vals[r], c: (s==='♥'||s==='♦')?'red':'black'})));
+        for(let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        trump = deck[0];
+        pHand = [];
+        bHand = [];
+        for(let i=0; i<6; i++) { 
+            if(deck.length) pHand.push(deck.pop()); 
+            if(deck.length) bHand.push(deck.pop()); 
+        }
+        pAtk = true;
+        waiting = false;
+        active = true;
+        waitingForConfirmTake = false;
+        if (botTimer) clearTimeout(botTimer);
+        document.getElementById('btn-restart').style.display = 'none';
+        document.getElementById('btn-confirm-take').style.display = 'none';
+        refresh();
+    }
+
+    function playCardFromHand(index) {
+        if (!active) return;
+        if (botTimer) return;
+        
+        if (waitingForConfirmTake) {
+            const card = pHand[index];
+            if (!card) return;
+            if (table.some(tc => tc.r === card.r) && table.length < 12) {
+                playCardSound();
+                table.push(pHand.splice(index, 1)[0]);
+                refresh();
+            }
+            return;
+        }
+        
+        if (pAtk && waiting) return;
+        if (!pAtk && !waiting) return;
+        
+        const card = pHand[index];
+        if (!card) return;
+
+        if (pAtk) {
+            if (table.length === 0 || table.some(tc => tc.r === card.r)) {
+                playCardSound();
+                table.push(pHand.splice(index, 1)[0]);
+                waiting = true;
+                refresh();
+                botTimer = setTimeout(() => { botTimer = null; botDefend(); }, 900);
+            }
+        } else {
+            const lastCard = table[table.length - 1];
+            if (lastCard) {
+                const canDefend = (card.s === lastCard.s && card.v > lastCard.v) || 
+                                (card.s === trump.s && lastCard.s !== trump.s);
+                if (canDefend) {
+                    playCardSound();
+                    table.push(pHand.splice(index, 1)[0]);
+                    waiting = false;
+                    refresh();
+                    botTimer = setTimeout(() => { botTimer = null; botAttack(); }, 900);
+                }
+            }
+        }
+    }
+
+    function setupTableSlide(el, originalLeft, originalTop) {
+        let startX = 0, startLeft = 0, isDragging = false;
+        let savedLeft = originalLeft;
+        const onTouchStart = (e) => {
+            e.preventDefault();
+            startX = e.touches[0].clientX;
+            startLeft = savedLeft;
+            isDragging = false;
+            el.style.transition = 'none';
+        };
+        const onTouchMove = (e) => {
+            e.preventDefault();
+            const dx = e.touches[0].clientX - startX;
+            if (Math.abs(dx) > 5) {
+                isDragging = true;
+                el.style.left = (startLeft + dx) + 'px';
+                el.style.zIndex = '1000';
+                el.style.opacity = '0.9';
+            }
+        };
+        const onTouchEnd = (e) => {
+            e.preventDefault();
+            if (isDragging) {
+                el.style.transition = 'left 0.2s ease-out';
+                el.style.left = originalLeft + 'px';
+                setTimeout(() => {
+                    el.style.transition = '';
+                    el.style.zIndex = '';
+                    el.style.opacity = '';
+                }, 200);
+            }
+            isDragging = false;
+        };
+        el.addEventListener('touchstart', onTouchStart, { passive: false });
+        el.addEventListener('touchmove', onTouchMove, { passive: false });
+        el.addEventListener('touchend', onTouchEnd);
+    }
+
+    function checkGameEnd() {
+        if (!active) return false;
+        if (table.length === 0) {
+            if (pHand.length === 0 && bHand.length === 0) {
+                document.getElementById('status-bar').innerHTML = lang === 'en' ? "🤝 DRAW!" : "🤝 НИЧЬЯ!";
+                endGame('draw');
+                return true;
+            } else if (pHand.length === 0) {
+                document.getElementById('status-bar').innerHTML = lang === 'en' ? "🏆 YOU WIN! 🏆" : "🏆 ТЫ ВЫИГРАЛ! 🏆";
+                endGame('win');
+                return true;
+            } else if (bHand.length === 0) {
+                document.getElementById('status-bar').innerHTML = lang === 'en' ? "🤖 BOT WINS! 🤖" : "🤖 БОТ ВЫИГРАЛ! 🤖";
+                endGame('loss');
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function refresh() {
+        document.getElementById('deck-cnt').innerHTML = txt[lang].count + deck.length;
+        document.getElementById('trump-card-slot').innerHTML = `<div class="card ${trump.c}" style="left:0;top:0;position:relative;">${trump.r}<br>${trump.s}</div>`;
+        
+        const bD = document.getElementById('bot-hand'); 
+        bD.innerHTML = '';
+        for(let i = 0; i < bHand.length; i++) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card back bot-card';
+            cardDiv.style.position = 'relative';
+            cardDiv.style.display = 'inline-block';
+            bD.appendChild(cardDiv);
+        }
+
+        const pD = document.getElementById('player-hand'); 
+        pD.innerHTML = '';
+        for(let i = 0; i < pHand.length; i++) {
+            const c = pHand[i];
+            const wrapper = document.createElement('div');
+            wrapper.className = 'hand-card';
+            const el = document.createElement('div');
+            el.className = `card ${c.c}`; 
+            el.innerHTML = `${c.r}<br>${c.s}`;
+            el.style.position = 'relative';
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playCardFromHand(i);
+            });
+            wrapper.appendChild(el);
+            pD.appendChild(wrapper);
+        }
+
+        const tD = document.getElementById('table-content'); 
+        tD.innerHTML = '';
+        tD.style.position = 'relative';
+        tD.style.minHeight = '200px';
+        
+        const centerX = window.innerWidth / 2;
+        const baseY = 70;
+        
+        for(let pair = 0; pair < Math.ceil(table.length / 2); pair++) {
+            const attackIdx = pair * 2;
+            const defendIdx = attackIdx + 1;
+            const isLeft = (pair % 2 === 0);
+            const xOffset = isLeft ? -90 : 40;
+            const leftPos = centerX + xOffset + (pair * 5);
+            
+            if (attackIdx < table.length) {
+                const attackCard = table[attackIdx];
+                const attackEl = document.createElement('div');
+                attackEl.className = `card ${attackCard.c} table-card`;
+                attackEl.innerHTML = `${attackCard.r}<br>${attackCard.s}`;
+                const attackTop = baseY + (pair * 30);
+                attackEl.style.left = leftPos + 'px';
+                attackEl.style.top = attackTop + 'px';
+                attackEl.style.position = 'absolute';
+                setupTableSlide(attackEl, leftPos, attackTop);
+                tD.appendChild(attackEl);
+            }
+            
+            if (defendIdx < table.length) {
+                const defendCard = table[defendIdx];
+                const defendEl = document.createElement('div');
+                defendEl.className = `card ${defendCard.c} table-card`;
+                defendEl.innerHTML = `${defendCard.r}<br>${defendCard.s}`;
+                const defendTop = baseY + 25 + (pair * 30);
+                const defendX = isLeft ? leftPos + 15 : leftPos - 15;
+                defendEl.style.left = defendX + 'px';
+                defendEl.style.top = defendTop + 'px';
+                defendEl.style.position = 'absolute';
+                setupTableSlide(defendEl, defendX, defendTop);
+                tD.appendChild(defendEl);
+            }
+        }
+
+        const btn = document.getElementById('btn-main');
+        let showBtn = false;
+        let btnText = "";
+        if (active && !waitingForConfirmTake) {
+            if (!pAtk && waiting) {
+                showBtn = true;
+                btnText = txt[lang].take;
+            } else if (pAtk && table.length > 0 && !waiting) {
+                showBtn = true;
+                btnText = txt[lang].end;
+            }
+        }
+        btn.style.display = showBtn ? 'block' : 'none';
+        btn.innerText = btnText;
+        
+        const confirmBtn = document.getElementById('btn-confirm-take');
+        if (waitingForConfirmTake) {
+            confirmBtn.style.display = 'block';
+            confirmBtn.innerText = txt[lang].confirm;
+        } else {
+            confirmBtn.style.display = 'none';
+        }
+        
+        let statusMsg = "";
+        if (waitingForConfirmTake) {
+            statusMsg = "";
+        } else if (pAtk) statusMsg = waiting ? "..." : txt[lang].pTurn;
+        else statusMsg = waiting ? txt[lang].def : txt[lang].bTurn;
+        document.getElementById('status-bar').innerHTML = statusMsg;
+        
+        checkGameEnd();
+    }
+
+    function botDefend() {
+        if (!active) return;
+        if (botTimer) return;
+        if (table.length === 0) {
+            nextTurn(true);
+            return;
+        }
+        
+        const lastCard = table[table.length - 1];
+        let canBeat = [];
+        for(let i = 0; i < bHand.length; i++) {
+            const c = bHand[i];
+            if ((c.s === lastCard.s && c.v > lastCard.v) || (c.s === trump.s && lastCard.s !== trump.s)) {
+                canBeat.push(c);
+            }
+        }
+        canBeat.sort((a,b) => a.v - b.v);
+        let f = canBeat[0];
+        
+        if (f) { 
+            const idx = bHand.indexOf(f);
+            bHand.splice(idx, 1);
+            table.push(f);
+            waiting = false; 
+            playCardSound();
+            refresh();
+        } else { 
+            waitingForConfirmTake = true;
+            refresh();
+        }
+    }
+
+    function botAttack() {
+        if (!active) return;
+        if (botTimer) return;
+        if (!pAtk && !waiting && !waitingForConfirmTake) {
+            let f = null;
+            if (table.length > 0) {
+                for(let i = 0; i < bHand.length; i++) {
+                    for(let j = 0; j < table.length; j++) {
+                        if (bHand[i].r === table[j].r) {
+                            f = bHand[i];
+                            break;
+                        }
+                    }
+                    if (f) break;
+                }
+            }
+            if (!f && table.length === 0 && bHand.length > 0) {
+                f = bHand[0];
+            }
+            
+            if (f && table.length < 12) { 
+                const idx = bHand.indexOf(f);
+                bHand.splice(idx, 1);
+                table.push(f);
+                waiting = true; 
+                playCardSound();
+                refresh();
+            } else {
+                nextTurn(false);
+            }
+        }
+    }
+
+    function doAction() {
+        if (!active) return;
+        if (waitingForConfirmTake) return;
+        if (botTimer) return;
+        
+        if (!pAtk && waiting) {
+            for(let i = 0; i < table.length; i++) pHand.push(table[i]);
+            table = [];
+            waiting = false;
+            pAtk = false;
+            drawCards();
+            refresh();
+            if (checkGameEnd()) return;
+            botTimer = setTimeout(() => { botTimer = null; botAttack(); }, 900);
+        } else if (pAtk && table.length > 0 && !waiting) {
+            nextTurn(true);
+        }
+    }
+
+    function nextTurn(botStartsAttack) {
+        table = [];
+        waiting = false;
+        drawCards();
+        pAtk = !botStartsAttack;
+        refresh();
+        if (checkGameEnd()) return;
+        if (!pAtk) {
+            botTimer = setTimeout(() => { botTimer = null; botAttack(); }, 900);
+        }
+    }
+
+    function drawCards() {
+        while(deck.length > 0 && (pHand.length < 6 || bHand.length < 6)) {
+            if(pHand.length < 6 && deck.length > 0) pHand.push(deck.pop());
+            if(bHand.length < 6 && deck.length > 0) bHand.push(deck.pop());
+        }
+    }
+    
+    window.addEventListener('resize', () => refresh());
+</script>
+</body>
+</html>
