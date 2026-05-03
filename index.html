@@ -106,8 +106,8 @@
 <script>
     let currentLang = 'en';
     const texts = {
-        en: { close: \"CLOSE GAME\", g1: \"Space Shooter\", g2: \"Puzzle Game\", g3: \"Card Game\", g4: \"Arcade Classic\" },
-        ru: { close: \"ЗАКРЫТЬ ИГРУ\", g1: \"Космо-шутер\", g2: \"Пазл-игра\", g3: \"Карточная игра\", g4: \"Аркадная классика\" }
+        en: { close: "CLOSE GAME", g1: "Space Shooter", g2: "Puzzle Game", g3: "Card Game", g4: "Arcade Classic" },
+        ru: { close: "ЗАКРЫТЬ ИГРУ", g1: "Космо-шутер", g2: "Пазл-игра", g3: "Карточная игра", g4: "Аркадная классика" }
     };
 
     function openGame(url) {
@@ -132,8 +132,8 @@
         document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
     }
 
-    document.getElementById('lang-en').onclick = () => { currentLang='en'; updateLanguageUI(); };
-    document.getElementById('lang-ru').onclick = () => { currentLang='ru'; updateLanguageUI(); };
+    document.getElementById('lang-en').onclick = function() { currentLang = 'en'; updateLanguageUI(); };
+    document.getElementById('lang-ru').onclick = function() { currentLang = 'ru'; updateLanguageUI(); };
 
     updateLanguageUI();
 </script>
