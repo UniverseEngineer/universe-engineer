@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PONG - Universe Engineer</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #0a0a1a;
+            font-family: 'Courier New', 'Arial', monospace;
+            width: 100vw;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-container {
+            width: 100vw;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a1a;
+            padding: 0;
+            position: relative;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #0a0a1a;
+            flex-shrink: 0;
+            height: 50px;
+        }
+        .lang-switch {
+            display: flex;
+            gap: 4px;
+            background: #000000aa;
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+        .lang-switch button {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .lang-switch button.active {
+            background: #00ffaa;
+            color: #000;
+        }
+        .bot-difficulty {
+            display: flex;
+            gap: 4px;
+            background: #000000aa;
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+        .bot-difficulty button {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .bot-difficulty button.active {
+            background: #ffaa44;
+            color: #000;
+        }
+        .score-board {
+            font-size: 22px;
+            font-weight: bold;
+            color: #00ffaa;
+            letter-spacing: 2px;
+            display: none !important; /* SLĒPTS */
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #000000aa;
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+        .speed-control button {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 0 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .speed-control span {
+            color: #00ffaa;
+            font-size: 14px;
+            min-width: 24px;
+            text-align: center;
+        }
+        .top-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        .top-btn {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            flex: 1;
+            min-height: 0;
+            background: #000;
+        }
+        .bottom-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px 12px 12px 12px;
+            background: #0a0a1a;
+            flex-shrink: 0;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a2ecc;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .message {
+            color: #ffaa66;
+            font-weight: bold;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 30px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-family: monospace;
+            text-align: center;
+        }
+        .start-btn {
+            background: #ffaa22;
+            color: #1e3a1e;
+        }
+        .newgame-btn {
+            background: #00cc66;
+            color: white;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .ctrl-btn {
+            flex: 1;
+            background: #ffffff;
+            border: 3px solid #00ff88;
+            color: #00aa44;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 12px 0;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: monospace;
+            box-shadow: 0 4px 0 #008844;
+            transition: 0.05s linear;
+            max-width: 200px;
+            min-height: 60px;
+        }
+        .ctrl-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #008844;
+        }
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            background: #050a15ea;
+            backdrop-filter: blur(12px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-card {
+            background: #1a2a1a;
+            padding: 25px;
+            border-radius: 45px;
+            text-align: center;
+            width: 90%;
+            max-width: 340px;
+            border: 3px solid #00ff66;
+        }
+        .login-card h2 {
+            color: #00ff66;
+            font-size: 36px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 8px #00ff66;
+        }
+        .login-card input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+            border-radius: 50px;
+            border: none;
+            text-align: center;
+            background: #2c3a2c;
+            color: #00ffcc;
+        }
+        .login-card button {
+            background: #00ff66;
+            color: #0a2f0a;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+        }
+        .leaderboard {
+            margin-top: 12px;
+            background: #000000aa;
+            border-radius: 20px;
+            padding: 8px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #00ffcc;
+        }
+        .leaderboard h3 { margin: 0 0 4px; color: gold; font-size: 14px; }
+        .exit-btn {
+            background: #d44 !important;
+            color: white;
+            margin-top: 8px;
+        }
+        .back-btn {
+            background: #555;
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .login-lang-switch {
+            display: flex;
+            gap: 4px;
+            background: #000000aa;
+            padding: 2px 8px;
+            border-radius: 30px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+        .login-lang-switch button {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .login-lang-switch button.active {
+            background: #00ffaa;
+            color: #000;
+        }
+        @media (orientation: landscape) {
+            .game-container {
+                max-width: 100vh;
+                margin: 0 auto;
+            }
+            canvas {
+                max-height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+        <h2>🏓 PONG</h2>
+        <div class="login-lang-switch">
+            <button id="loginLangEnBtn" class="active">EN</button>
+            <button id="loginLangRuBtn">RU</button>
+        </div>
+        <input type="text" id="loginName" placeholder="Nickname / Имя" autocomplete="off">
+        <div><button id="loginBtn">🎮 PLAY / ИГРАТЬ</button></div>
+        <div class="leaderboard" id="leaderboardLogin">
+            <h3 id="leaderboardTitle">🏆 TOP PLAYERS / ЛУЧШИЕ</h3>
+            <div id="rankList">Loading...</div>
+        </div>
+        <button class="exit-btn" onclick="exitToPortal()">🏠 EXIT / ВЫХОД</button>
+    </div>
+</div>
+
+<div class="game-container" id="gameUI" style="display:none;">
+    <div class="top-bar">
+        <div class="bot-difficulty">
+            <button id="easyBotBtn" class="active">😴 EASY</button>
+            <button id="mediumBotBtn">🤔 MED</button>
+            <button id="hardBotBtn">🤖 HARD</button>
+        </div>
+        <div class="score-board">
+            <span id="playerScore">0</span> : <span id="aiScore">0</span>
+        </div>
+        <div class="top-buttons">
+            <button class="back-btn" id="menuExitBtn">🏠</button>
+            <div class="speed-control">
+                <button id="speedDownBtn">−</button>
+                <span id="speedDisplay">3</span>
+                <button id="speedUpBtn">+</button>
+            </div>
+            <span style="color:#aaa;font-size:12px;">🎮 <span id="gamesPlayed">0</span></span>
+        </div>
+    </div>
+    
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="bottom-bar">
+        <div class="info-panel">
+            <div>👤 <span id="userName"></span></div>
+            <div class="message" id="msgArea">🏓 PRESS START</div>
+            <div style="color:#666;font-size:10px;">v1.0</div>
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn start-btn" id="startRoundBtn">🎮 START</button>
+            <button class="action-btn newgame-btn" id="newGameBtn">🔄 NEW</button>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn" id="leftBtn">◀</button>
+            <button class="ctrl-btn" id="rightBtn">▶</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const langText = {
+        en: {
+            newGame:"NEW", menu:"MENU", start:"START", win:"YOU WIN!", lose:"AI WINS!",
+            ready:"PRESS START", playing:"PLAY", playBtn:"🎮 PLAY", exitBtn:"🏠 EXIT",
+            leaderboardTitle:"🏆 TOP PLAYERS", loginPlaceholder:"Nickname"
+        },
+        ru: {
+            newGame:"НОВАЯ", menu:"МЕНЮ", start:"СТАРТ", win:"ВЫ ПОБЕДИЛИ!", lose:"ИИ ПОБЕДИЛ!",
+            ready:"НАЖМИТЕ СТАРТ", playing:"ИГРА", playBtn:"🎮 ИГРАТЬ", exitBtn:"🏠 ВЫХОД",
+            leaderboardTitle:"🏆 ЛУЧШИЕ ИГРОКИ", loginPlaceholder:"Имя"
+        }
+    };
+    let lang = 'en';
+
+    let players = JSON.parse(localStorage.getItem('pong_players') || '{}');
+    let currentUser = null;
+    function savePlayers() { localStorage.setItem('pong_players', JSON.stringify(players)); updateLeaderboard(); }
+    function updateLeaderboard() {
+        let list = Object.entries(players).map(([n,d]) => ({name:n, bestScore:d.bestScore||0})).sort((a,b)=>b.bestScore-a.bestScore).slice(0,5);
+        let html = list.length ? list.map((p,i)=>`${i+1}. ${p.name} 🏆 ${p.bestScore}`).join('<br>') : '—';
+        document.getElementById('rankList').innerHTML = html;
+    }
+
+    let audioCtx = null;
+    function initAudio() {
+        if(!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            audioCtx.resume();
+        }
+    }
+    function playSound(type) {
+        if(!audioCtx) return;
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            if(type === 'hit') { osc.frequency.value = 880; gain.gain.value = 0.12; osc.type = 'square'; }
+            if(type === 'score') { osc.frequency.value = 440; gain.gain.value = 0.15; osc.type = 'sine'; }
+            if(type === 'wall') { osc.frequency.value = 620; gain.gain.value = 0.08; osc.type = 'triangle'; }
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+            osc.stop(audioCtx.currentTime + 0.18);
+        } catch(e) {}
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to fill the space
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width || window.innerWidth;
+        canvas.height = rect.height || window.innerHeight * 0.55;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let gameActive = false;
+    let roundActive = false;
+    let animationId = null;
+
+    let playerPaddle = { x: 160, y: 590, width: 80, height: 14 };
+    let aiPaddle = { x: 160, y: 30, width: 80, height: 14 };
+    let playerSpeed = 0;
+    let ball = { x: 200, y: 320, radius: 7, vx: 0, vy: 0 };
+    let playerScore = 0;
+    let aiScore = 0;
+    let winLimit = 7;
+    let gameEnded = false;
+    let botDifficulty = 'easy';
+    let ballSpeed = 3;
+
+    function resetBallStatic() {
+        ball.x = canvas.width/2;
+        ball.y = canvas.height/2;
+        ball.vx = 0;
+        ball.vy = 0;
+    }
+
+    function startRound() {
+        if(!gameActive || gameEnded) return;
+        roundActive = true;
+        let dirX = (Math.random() > 0.5) ? ballSpeed : -ballSpeed;
+        let dirY = ballSpeed * 0.9;
+        ball.x = canvas.width/2;
+        ball.y = aiPaddle.y + aiPaddle.height + 20;
+        ball.vx = dirX;
+        ball.vy = dirY;
+        document.getElementById('msgArea').innerHTML = "🏓 " + langText[lang].playing;
+    }
+
+    function startNewGame() {
+        if(animationId) cancelAnimationFrame(animationId);
+        playerScore = 0;
+        aiScore = 0;
+        gameEnded = false;
+        gameActive = true;
+        roundActive = false;
+        playerPaddle.x = canvas.width/2 - 40;
+        aiPaddle.x = canvas.width/2 - 40;
+        playerSpeed = 0;
+        playerPaddle.y = canvas.height - 50;
+        aiPaddle.y = 30;
+        updateScoreUI();
+        resetBallStatic();
+        document.getElementById('msgArea').innerHTML = "🏓 " + langText[lang].ready;
+        document.getElementById('startRoundBtn').innerHTML = "🎮 " + langText[lang].start;
+        gameLoop();
+    }
+
+    function updateScoreUI() {
+        document.getElementById('playerScore').innerHTML = playerScore;
+        document.getElementById('aiScore').innerHTML = aiScore;
+    }
+
+    function checkGameEnd() {
+        if(playerScore >= winLimit) {
+            gameActive = false;
+            roundActive = false;
+            gameEnded = true;
+            document.getElementById('msgArea').innerHTML = langText[lang].win;
+            if(currentUser) {
+                let best = (players[currentUser]?.bestScore || 0) + 1;
+                let games = (players[currentUser]?.games || 0) + 1;
+                players[currentUser] = { bestScore: best, games: games };
+                savePlayers();
+                document.getElementById('gamesPlayed').innerHTML = games;
+            }
+            return true;
+        }
+        if(aiScore >= winLimit) {
+            gameActive = false;
+            roundActive = false;
+            gameEnded = true;
+            document.getElementById('msgArea').innerHTML = langText[lang].lose;
+            if(currentUser) {
+                let games = (players[currentUser]?.games || 0) + 1;
+                players[currentUser] = { bestScore: players[currentUser]?.bestScore || 0, games: games };
+                savePlayers();
+                document.getElementById('gamesPlayed').innerHTML = games;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    function updateGame() {
+        if(!gameActive || !roundActive) return;
+
+        playerPaddle.x += playerSpeed;
+        if(playerPaddle.x < 8) playerPaddle.x = 8;
+        if(playerPaddle.x + playerPaddle.width > canvas.width - 8) playerPaddle.x = canvas.width - playerPaddle.width - 8;
+
+        let aiTarget = ball.x - aiPaddle.width/2;
+        let aiDiff = aiTarget - aiPaddle.x;
+        let aiSpeed;
+        let error;
+
+        if (botDifficulty === 'easy') {
+            error = (Math.random() - 0.5) * 30;
+            aiSpeed = 2.5;
+        } else if (botDifficulty === 'medium') {
+            error = (Math.random() - 0.5) * 20;
+            aiSpeed = 3.5;
+        } else {
+            error = (Math.random() - 0.5) * 6;
+            aiSpeed = 6;
+        }
+
+        aiDiff = (aiTarget + error) - aiPaddle.x;
+
+        if(Math.abs(aiDiff) > 12) {
+            if(aiDiff > 0) aiPaddle.x += aiSpeed;
+            else aiPaddle.x -= aiSpeed;
+        }
+        if(aiPaddle.x < 8) aiPaddle.x = 8;
+        if(aiPaddle.x + aiPaddle.width > canvas.width - 8) aiPaddle.x = canvas.width - aiPaddle.width - 8;
+
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        if(ball.x - ball.radius < 0) {
+            ball.vx = -ball.vx;
+            ball.x = ball.radius;
+            playSound('wall');
+        }
+        if(ball.x + ball.radius > canvas.width) {
+            ball.vx = -ball.vx;
+            ball.x = canvas.width - ball.radius;
+            playSound('wall');
+        }
+
+        if(ball.y + ball.radius > playerPaddle.y &&
+           ball.y - ball.radius < playerPaddle.y + playerPaddle.height &&
+           ball.x + ball.radius > playerPaddle.x &&
+           ball.x - ball.radius < playerPaddle.x + playerPaddle.width) {
+            let hitPos = (ball.x - playerPaddle.x) / playerPaddle.width;
+            let angle = (hitPos - 0.5) * 1.4;
+            ball.vy = -Math.abs(ball.vy);
+            ball.vx = angle * 6;
+            playSound('hit');
+        }
+
+        if(ball.y - ball.radius < aiPaddle.y + aiPaddle.height &&
+           ball.y + ball.radius > aiPaddle.y &&
+           ball.x + ball.radius > aiPaddle.x &&
+           ball.x - ball.radius < aiPaddle.x + aiPaddle.width) {
+            let hitPos = (ball.x - aiPaddle.x) / aiPaddle.width;
+            let angle = (hitPos - 0.5) * 1.4;
+            ball.vy = Math.abs(ball.vy);
+            ball.vx = angle * 6;
+            playSound('hit');
+        }
+
+        if(ball.y + ball.radius < 0) {
+            playerScore++;
+            updateScoreUI();
+            playSound('score');
+            roundActive = false;
+            resetBallStatic();
+            document.getElementById('msgArea').innerHTML = "🏓 " + langText[lang].ready;
+            if(checkGameEnd()) return;
+        }
+        if(ball.y - ball.radius > canvas.height) {
+            aiScore++;
+            updateScoreUI();
+            playSound('score');
+            roundActive = false;
+            resetBallStatic();
+            document.getElementById('msgArea').innerHTML = "🏓 " + langText[lang].ready;
+            if(checkGameEnd()) return;
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#0a0f1e";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = "#00ffaa";
+        ctx.setLineDash([10, 15]);
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height/2);
+        ctx.lineTo(canvas.width, canvas.height/2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#00ff88";
+        ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+        ctx.fillStyle = "#00ff88";
+        ctx.fillRect(playerPaddle.x+5, playerPaddle.y+2, playerPaddle.width-10, 4);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(aiPaddle.x, aiPaddle.y, aiPaddle.width, aiPaddle.height);
+        ctx.fillStyle = "#ffaa44";
+        ctx.fillRect(aiPaddle.x+5, aiPaddle.y+2, aiPaddle.width-10, 4);
+        
+        ctx.fillStyle = "#ffff88";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "#ffaa44";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius-2, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+        
+        ctx.font = "bold 38px 'Courier New'";
+        ctx.fillStyle = "#44ffaa";
+        ctx.fillText(playerScore, canvas.width/2 - 50, canvas.height - 80);
+        ctx.fillStyle = "#ffaa44";
+        ctx.fillText(aiScore, canvas.width/2 - 50, 90);
+        
+        ctx.font = "12px monospace";
+        ctx.fillStyle = "#aaa";
+        ctx.fillText(lang === 'ru' ? "ВЫ" : "YOU", canvas.width/2 - 28, canvas.height - 18);
+        ctx.fillText("AI", canvas.width/2 - 18, 30);
+    }
+
+    function gameLoop() {
+        updateGame();
+        draw();
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function applyLanguage() {
+        document.getElementById('loginLangEnBtn').classList.toggle('active', lang==='en');
+        document.getElementById('loginLangRuBtn').classList.toggle('active', lang==='ru');
+        document.getElementById('loginBtn').innerHTML = langText[lang].playBtn;
+        document.getElementById('leaderboardTitle').innerHTML = langText[lang].leaderboardTitle;
+        document.getElementById('loginName').placeholder = langText[lang].loginPlaceholder;
+        
+        let exitOverlayBtn = document.querySelector('#loginOverlay .exit-btn');
+        if(exitOverlayBtn) exitOverlayBtn.innerHTML = langText[lang].exitBtn;
+        
+        document.getElementById('menuExitBtn').innerHTML = "🏠";
+        
+        if(gameActive && !roundActive) {
+            document.getElementById('msgArea').innerHTML = "🏓 " + langText[lang].ready;
+        }
+        document.getElementById('startRoundBtn').innerHTML = "🎮 " + langText[lang].start;
+        document.getElementById('newGameBtn').innerHTML = "🔄 " + langText[lang].newGame;
+    }
+
+    function setLang(l) {
+        lang = l;
+        applyLanguage();
+    }
+
+    function setBotDifficulty(difficulty) {
+        botDifficulty = difficulty;
+        document.getElementById('easyBotBtn').classList.toggle('active', difficulty === 'easy');
+        document.getElementById('mediumBotBtn').classList.toggle('active', difficulty === 'medium');
+        document.getElementById('hardBotBtn').classList.toggle('active', difficulty === 'hard');
+        if (gameActive) {
+            startNewGame();
+        }
+    }
+
+    function updateSpeedDisplay() {
+        document.getElementById('speedDisplay').textContent = ballSpeed;
+    }
+
+    function changeBallSpeed(delta) {
+        let newSpeed = ballSpeed + delta;
+        if (newSpeed >= 1 && newSpeed <= 7) {
+            ballSpeed = newSpeed;
+            updateSpeedDisplay();
+        }
+    }
+    
+    function login() {
+        let name = document.getElementById('loginName').value.trim();
+        if(!name) return;
+        if(!players[name]) players[name] = { bestScore:0, games:0 };
+        currentUser = name;
+        savePlayers();
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('gameUI').style.display = 'flex';
+        document.getElementById('userName').innerHTML = currentUser;
+        document.getElementById('gamesPlayed').innerHTML = players[currentUser].games;
+        resizeCanvas();
+        startNewGame();
+        updateLeaderboard();
+        initAudio();
+        updateSpeedDisplay();
+    }
+    
+    function exitToPortal() { window.location.href = "index.html"; }
+    
+    function exitToMenu() {
+        gameActive = false;
+        roundActive = false;
+        gameEnded = false;
+        if(animationId) cancelAnimationFrame(animationId);
+        document.getElementById('gameUI').style.display = 'none';
+        document.getElementById('loginOverlay').style.display = 'flex';
+        updateLeaderboard();
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    window.onload = () => {
+        document.getElementById('loginBtn').onclick = login;
+        document.getElementById('newGameBtn').onclick = () => { if(currentUser) startNewGame(); };
+        document.getElementById('startRoundBtn').onclick = () => { if(currentUser && gameActive && !roundActive && !gameEnded) startRound(); };
+        document.getElementById('menuExitBtn').onclick = exitToMenu;
+        document.getElementById('loginLangEnBtn').onclick = () => setLang('en');
+        document.getElementById('loginLangRuBtn').onclick = () => setLang('ru');
+        document.getElementById('easyBotBtn').onclick = () => setBotDifficulty('easy');
+        document.getElementById('mediumBotBtn').onclick = () => setBotDifficulty('medium');
+        document.getElementById('hardBotBtn').onclick = () => setBotDifficulty('hard');
+        
+        // Fullscreen on double click anywhere
+        document.addEventListener('dblclick', toggleFullscreen);
+        
+        document.getElementById('speedUpBtn').onclick = () => changeBallSpeed(1);
+        document.getElementById('speedDownBtn').onclick = () => changeBallSpeed(-1);
+        
+        let leftBtn = document.getElementById('leftBtn');
+        let rightBtn = document.getElementById('rightBtn');
+        
+        const startLeft = () => { if(gameActive && roundActive) playerSpeed = -7.5; };
+        const startRight = () => { if(gameActive && roundActive) playerSpeed = 7.5; };
+        const stopMove = () => { playerSpeed = 0; };
+        
+        leftBtn.addEventListener('mousedown', startLeft);
+        leftBtn.addEventListener('mouseup', stopMove);
+        leftBtn.addEventListener('mouseleave', stopMove);
+        leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startLeft(); });
+        leftBtn.addEventListener('touchend', stopMove);
+        
+        rightBtn.addEventListener('mousedown', startRight);
+        rightBtn.addEventListener('mouseup', stopMove);
+        rightBtn.addEventListener('mouseleave', stopMove);
+        rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRight(); });
+        rightBtn.addEventListener('touchend', stopMove);
+        
+        updateLeaderboard();
+        setLang('en');
+    };
+</script>
+</body>
+</html>
