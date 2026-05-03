@@ -40,8 +40,8 @@
 
         .img-star { background-image: url('star-shot.jpg'); }
         .img-tetris { background-image: url('tetris.jpg'); }
-        .img-durak { background-image: url('durak.jpg'); } 
-        .img-pong { background-image: url('pong.jpg'); } /* Pievienots pong.jpg */
+        .img-durak { background-image: url('durak.jpg'); }
+        .img-pong { background-image: url('pong.jpg'); }
 
         .game-info { padding: 15px 10px; background: var(--info-green); border-radius: 0 0 25px 25px; color: #ffffff; }
         .game-title { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 4px; }
@@ -106,8 +106,8 @@
 <script>
     let currentLang = 'en';
     const texts = {
-        en: { close: "CLOSE GAME", g1: "Space Shooter", g2: "Puzzle Game", g3: "Card Game", g4: "Arcade Classic" },
-        ru: { close: "ЗАКРЫТЬ ИГРУ", g1: "Космо-шутер", g2: "Пазл-игра", g3: "Карточная игра", g4: "Аркадная классика" }
+        en: { close: \"CLOSE GAME\", g1: \"Space Shooter\", g2: \"Puzzle Game\", g3: \"Card Game\", g4: \"Arcade Classic\" },
+        ru: { close: \"ЗАКРЫТЬ ИГРУ\", g1: \"Космо-шутер\", g2: \"Пазл-игра\", g3: \"Карточная игра\", g4: \"Аркадная классика\" }
     };
 
     function openGame(url) {
@@ -126,7 +126,7 @@
         document.getElementById('g1').innerText = t.g1;
         document.getElementById('g2').innerText = t.g2;
         document.getElementById('g3').innerText = t.g3;
-        document.getElementById('g4').innerText = t.g4; // Atjaunots tulkojums g4
+        document.getElementById('g4').innerText = t.g4;
         
         document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
         document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
